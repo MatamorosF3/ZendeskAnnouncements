@@ -1,0 +1,72 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+</head>
+<body>
+  <div id="div_1">
+    this is a new div
+  </div>
+        {{#each items}}
+      
+      {{data_rows}}
+      
+      {{/each}}
+</body>
+
+
+    <script id="requester-template" type="text/x-handlebars-template">
+      <table>
+      <tr>
+      <th>University</th>
+      <th>Issue</th>
+      <th>Show Info</th>
+      </tr>
+      
+
+      {{#each items}}
+      <tr>
+      {{data_rows}}
+      </tr>
+      {{/each}}
+<!-- 
+
+      {{#if tags}}
+      <tr>
+        <td>Tags:</td>
+        <td class="data">{{#each tags}}{{this}} {{/each}}</td>
+      </tr>
+      {{/if}}
+      <tr>
+        <td>Added:</td>
+        <td class="data">{{created_at}}</td>
+      </tr>
+      <tr>
+        <td>Last signed in:</td>
+        <td class="data">{{last_login_at}}</td>
+      </tr> -->
+      </table>
+    </script>
+
+<script type="text/javascript">
+  var client = ZAFClient.init();
+  client.on('incoming_call', function(){
+    console.log("Hola");
+   
+  });
+client.context().then(function(context) {
+  console.log("Nexxt one");
+  console.log(context);
+  /*
+    {
+      "instanceGuid": "7712c893-bec7-4e00-9db0-87fbb0c12914",
+      "product": "support",
+      "account": {
+        "subdomain": "mondocam"
+      },
+      "location": 'ticket_sidebar',
+      "ticketId": 1234
+    }
+  */
+});
+</script>
+</html>
