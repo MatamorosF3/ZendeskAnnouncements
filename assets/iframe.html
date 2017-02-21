@@ -1,88 +1,103 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <!-- http://garden.zendesk.com -->
-    <!--  <link rel="stylesheet" href="https://assets.zendesk.com/apps/sdk-assets/css/0/zendesk_garden.css" type="text/css"> -->
-    <link href="https://cdn.jsdelivr.net/bootstrap/2.3.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="main.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+    <link href="main.css" rel="stylesheet">
+    <script src="https://apis.google.com/js/api.js"></script>
   </head>
   <body>
-    <button onclick="googleSheetAPI()" id="button_1">Click me</button>
+    <div class="fixed-action-btn" style="bottom: 76px; right: 9px;">
+      <a class="btn-floating btn-small red">
+      <i class="material-icons">mode_edit</i>
+      </a>
+    </div>
+    <button onclick="createIssue()">Create Issue</button>
     <div id="content"></div>
     <footer>
       <a href="https://developer.zendesk.com/rest_api/docs/core/apps#overview" target="_blank">Report bugs</a>
     </footer>
-    <button onclick="getModal()">Show MOdal</button>
     <script id="requester-template" type="text/x-handlebars-template">
-      <table>
-      <tr>
-      <th>University</th>
-      <th>Issue</th>
-      <th>Show Info</th>
-      </tr>
+      <table class = "">
+        <thead>
+          <tr>
+              <th data-field="id">University</th>
+              <th data-field="name">Issue</th>
+          </tr>
+        </thead>
       
-
-      {{#each items}}
-      <tr>
-      {{data_rows}}
-      </tr>
-      {{/each}}
-<!-- 
-
-      {{#if tags}}
-      <tr>
-        <td>Tags:</td>
-        <td class="data">{{#each tags}}{{this}} {{/each}}</td>
-      </tr>
-      {{/if}}
-      <tr>
-        <td>Added:</td>
-        <td class="data">{{created_at}}</td>
-      </tr>
-      <tr>
-        <td>Last signed in:</td>
-        <td class="data">{{last_login_at}}</td>
-      </tr> -->
+        <tbody>
+          {{#each items}}
+          <tr>
+          {{data_rows}}
+          </tr>
+          {{/each}}
+        </tbody>
       </table>
+      
     </script>
     <script id="error-template" type="text/x-handlebars-template">
       <p>{{status}} - {{statusText}} error. Please report a bug at the link below.</p>
     </script>
     <!-- https://github.com/zendesk/zendesk_app_framework_sdk -->
-    <script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
     <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
     <script javascript="text/javascript" src="main.js"></script>
     <script>
-      function test(){
-        client.get('ticket.assignee.user').then(function(data) {
-        console.log(data['ticket.assignee.user']); // something like 29043265
-      });
+      function createIssue() {
       
+        client.invoke('instances.create', {
+          location: 'modal',
+          url: "assets/issue.html"
+        }).then(function(modalContext) {
+          var modalClient = client.instance(modalContext['instances.create'][0].instanceGuid);
+      
+      
+          modalClient.invoke('resize', {
+            width: '750px',
+            height: '400px'
+          });
+      
+          modalClient.on('modal.close', function() {
+            modalClient.trigger('incoming_call');
+            // The modal has been closed.
+           // Materialize.toast('Issue created!', 3000, 'rounded');
+            console.log("Modal is closed");
+          });
+      
+        });
       
       }
       
-      function getModal(){
-
-
-        console.log("Getting modal");
-        client.invoke('instances.create', {location: 'modal', url:"assets/iframe3.html"}).then(function(modalContext){
-          // The modal is on the screen now!
-          console.log("MOdla Context");
-          console.log(modalContext);
-        var modalClient = client.instance(modalContext['instances.create'][0].instanceGuid);
-        modalClient.trigger('incoming_call');
-
-        modalClient.on('modal.close', function() {
-          // The modal has been closed.
-          console.log("Modal is closed");
-        });
-        });
-        client.invoke('resize', { width: '300px', height: '750px' })
-        //client.invoke('resize', { width: '80vw', height: '80vh' });
+      function getModal(id) {
+      
+      localStorage.setItem('id', id);
+      client.invoke('instances.create', {
+      location: 'modal',
+      url: "assets/iframe3.html",
+      client_data: 'test'
+      }).then(function(modalContext) {
+      var modalClient = client.instance(modalContext['instances.create'][0].instanceGuid);
+      
+      modalClient.invoke('resize', {
+      width: '750px',
+      height: '400px'
+      }); 
+      
+      modalClient.trigger('incoming_call');
+      console.log("Modal client from main");
+      console.log(modalClient);
+      modalClient.on('modal.close', function() {
+      modalClient.trigger('incoming_call');
+      // The modal has been closed.
+      console.log("Modal is closed");
+      });
+      
+      });      
       }
       
     </script>

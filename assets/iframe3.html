@@ -1,72 +1,48 @@
 <html>
-<head>
-    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
-</head>
-<body>
-  <div id="div_1">
-    this is a new div
-  </div>
-        {{#each items}}
-      
-      {{data_rows}}
-      
-      {{/each}}
-</body>
-
-
-    <script id="requester-template" type="text/x-handlebars-template">
-      <table>
-      <tr>
-      <th>University</th>
-      <th>Issue</th>
-      <th>Show Info</th>
-      </tr>
-      
-
-      {{#each items}}
-      <tr>
-      {{data_rows}}
-      </tr>
-      {{/each}}
-<!-- 
-
-      {{#if tags}}
-      <tr>
-        <td>Tags:</td>
-        <td class="data">{{#each tags}}{{this}} {{/each}}</td>
-      </tr>
-      {{/if}}
-      <tr>
-        <td>Added:</td>
-        <td class="data">{{created_at}}</td>
-      </tr>
-      <tr>
-        <td>Last signed in:</td>
-        <td class="data">{{last_login_at}}</td>
-      </tr> -->
-      </table>
-    </script>
-
-<script type="text/javascript">
-  var client = ZAFClient.init();
-  client.on('incoming_call', function(){
-    console.log("Hola");
-   
-  });
-client.context().then(function(context) {
-  console.log("Nexxt one");
-  console.log(context);
-  /*
-    {
-      "instanceGuid": "7712c893-bec7-4e00-9db0-87fbb0c12914",
-      "product": "support",
-      "account": {
-        "subdomain": "mondocam"
-      },
-      "location": 'ticket_sidebar',
-      "ticketId": 1234
-    }
-  */
-});
-</script>
+  <head>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.8/angular.min.js"></script>
+  </head>
+  <body>
+    <table id="thetable" class="bordered">
+      <thead>
+        <tr>
+          <th data-field="id">Organization</th>
+          <th data-field="name">Issue</th>
+          <th data-field="price">Solution</th>
+          <th data-field="price">Created BY</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </body>
+  <script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+  <script type="text/javascript">
+    
+    $(function() { 
+       $.ajax({
+        url: 'http://ec2-54-159-13-160.compute-1.amazonaws.com:9000/issue/' + localStorage.getItem('id'),
+        type: 'GET',
+    
+        success: function(data){
+          for(var i in data){
+            
+             var html = '';
+             html += '<tr><td>' + data[i].ORGANIZATION + '</td><td>' + data[i].ISSUE + '</td>' + '<td>' + data[i].SOLUTION + '</td>' + '<td>' + data[i].CREATED_BY + '</td></tr>';
+            $('#thetable tr').first().after(html);              
+          }
+        },
+        error: function(err){
+          console.log(err);
+        }
+      });
+    
+    });
+  </script>
 </html>

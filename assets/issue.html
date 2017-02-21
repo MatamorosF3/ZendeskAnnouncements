@@ -1,0 +1,195 @@
+<html>
+<head>
+  <script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+
+  <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+          
+
+    
+</head>
+<body>
+
+  <div class="row">
+    <form id="formCreateIssue" class="col s12">
+        <div class="row">
+        <div class="input-field col s6">
+          <input id="organization" name="organization" type="text" class="validate">
+          <label for="organization">Organization</label>
+          <div id="showErrorOrganization" style="color:red; display:none;">This Field is required</div>
+        </div>
+        <div class="input-field col s6">
+          <input id="issue" name="issue" type="text" class="validate">
+          <label for="issue">Issue</label>
+          <div id="showErrorIssue" style="color:red; display:none;">This Field is required</div>
+
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="input-field col s12">
+          <textarea id="textarea_solution" name="textarea_solution" class="materialize-textarea"></textarea>
+          <label for="textarea_solution">Solution</label>
+          <div id="showErrorSolution" style="color:red; display:none;">This Field is required</div>
+        </div>
+      </div>
+    </form>
+  </div>
+
+    <button class="btn waves-effect waves-light" type="button" name="action" onclick="createIssue()">Submit
+    <i class="material-icons right">send</i>
+  </button>
+
+    <script id="requester-template" type="text/x-handlebars-template">
+      <table>
+      <tr>
+      <th>University</th>
+      <th>Issue</th>
+      <th>Show Info</th>
+      </tr>
+      
+
+      {{#each items}}
+      <tr>
+      {{data_rows}}
+      </tr>
+      {{/each}}
+<!-- 
+
+      {{#if tags}}
+      <tr>
+        <td>Tags:</td>
+        <td class="data">{{#each tags}}{{this}} {{/each}}</td>
+      </tr>
+      {{/if}}
+      <tr>
+        <td>Added:</td>
+        <td class="data">{{created_at}}</td>
+      </tr>
+      <tr>
+        <td>Last signed in:</td>
+        <td class="data">{{last_login_at}}</td>
+      </tr> -->
+      </table>
+    </script>
+</body>
+
+
+<script>
+
+  var client = ZAFClient.init();
+  console.log("Client from modal: ");
+  console.log(client);
+
+  client.on('app.registered', function(e) {
+  // go nuts
+  console.log("aja");
+
+
+  console.log(e);
+});
+
+  client.on('modal.close', function(){
+    Materialize.toast('I am a toast!', 3000, 'rounded');
+  });
+
+    client.on('incoming_call', function(){
+      console.log("Hola, me han llamado.  incoming_call");
+    });
+
+        client.on('popover', function(){
+      console.log("popover");
+    });
+client.context().then(function(context) {
+  console.log("Modal Context from modal");
+  console.log(context);
+  
+});
+
+function createIssue(){
+  var missingInputOrganization = false;
+  var missingInputIssue = false;
+  var missingInputSolution = false;
+
+  $('#showErrorOrganization').css('display','none');
+  $('#showErrorIssue').css('display','none');
+  $('#showErrorSolution').css('display','none');
+
+
+  if($('#organization').val().trim() === ''){
+      $('#showErrorOrganization').css('display','block');
+      console.log('esta vacio ');
+      missingInputOrganization = true;
+  }
+
+  if($('#issue').val().trim() === ''){
+      $('#showErrorIssue').css('display','block');
+      console.log('esta vacio ');
+      missingInputIssue = true;
+  }
+
+  if($('#textarea_solution').val().trim() === ''){
+      $('#showErrorSolution').css('display','block');
+      console.log('esta vacio ');
+      missingInputSolution = true;
+  }
+
+  if (missingInputSolution || missingInputIssue || missingInputOrganization) return;
+
+
+  var user;
+  var fetchSelf = {
+  url: '/api/v2/users/me.json',
+  type: 'GET',
+  dataType: 'json'
+};
+
+client.request(fetchSelf).then(function(data) {
+  user = data.user.email;
+  console.log(data.user.email);
+
+
+   $.ajax({
+    url: 'http://ec2-54-159-13-160.compute-1.amazonaws.com:9000/issue',
+    type: 'POST',
+     data: { organization: $('#organization').val(), issue: $('#issue').val(), solution: $('#textarea_solution').val(), display: 1, created_by: data.user.email , modified_by: data.user.email
+
+    },
+    success: function(data){
+      console.log("Data saved");
+      console.log(data);
+      client.invoke('destroy');
+    },
+    error: function(err){
+      console.log();
+    }
+  });
+});
+
+ 
+  // $.ajax({
+  //   url: 'http://ec2-54-159-13-160.compute-1.amazonaws.com:9000/issue',
+  //   type: 'POST',
+  //    data: { organization: $('#organization').val(), issue: $('#issue').val(), solution: $('#textarea_solution').val(), issue: 'issue1'
+
+  //   },
+  //   success: function(data){
+  //     console.log(data);
+  //   },
+  //   error: function(err){
+  //     console.log();
+  //   }
+  // });
+
+
+}
+</script>
+</html>

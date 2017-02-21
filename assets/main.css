@@ -1,20 +1,21 @@
-footer {
+/*footer {
   font-size: 10px;
   padding-top: 20px;
 }
 
 .data{
-	color: #363;
-	padding-left: 6px;
+  color: #363;
+  padding-left: 6px;
 }
 
 #content td {
-	font-size:12px;
-	padding-top:2px;
+  font-size:12px;
+  padding-top:2px;
 
-}
+}*/
 
-table {
+
+/*table {
     font-family: arial, sans-serif;
     border-collapse: collapse;
     width: 100%;
@@ -28,4 +29,13 @@ td, th {
 
 tr:nth-child(even) {
     background-color: #dddddd;
+}*/
+
+#createIssue {
+    left: 79%;
+}
+
+.fixed-action-btn {
+    bottom: 76px;
+    right: 9px;
 }
