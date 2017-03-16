@@ -1,0 +1,119 @@
+<html>
+
+<head>
+    <script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
+
+    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <link href="main.css" rel="stylesheet">
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="createAnnouncement.css">
+</head>
+
+<body>
+    <div class="row">
+        <form id="formCreateIssue" class="col s12">
+            <div class="row">
+                <div class="input-field col s6">
+                    <input id="title" name="title" type="text" class="validate">
+                    <label for="title" data-error="This field is required">Title</label>
+                    <!--  <div id="showErrorOrganization" style="color:red; display:none;">This Field is required</div> -->
+                </div>
+                <div class="input-field col s6">
+                    <input id="detail" name="detail" type="text" class="validate">
+                    <label for="detail" data-error="This field is required">Detail</label>
+                    <!-- <div id="showErrorIssue" style="color:red; display:none;">This Field is required</div> -->
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <textarea id="MyID" class="browser-default"></textarea>
+                    <!--      <textarea id="textarea_solution" name="textarea_solution" class="materialize-textarea"></textarea>
+                    <label for="textarea_solution" data-error="This Field is required">Solution</label>
+                    <div id="showErrorSolution" style="color:red; display:none;">This Field is required</div>-->
+                </div>
+            </div>
+        </form>
+        <button id="createIssue" class="btn waves-effect waves-light" type="button" name="action" onclick="createIssue()">Submit
+            <i class="material-icons right">send</i>
+        </button>
+    </div>
+</body>
+<script>
+var client = ZAFClient.init();
+
+
+
+var simplemde = new SimpleMDE({
+    element: document.getElementById("MyID"),
+    toolbar: ["bold", "italic", "|", "heading-1", "heading-2", "heading-3", "|", "ordered-list", "|", "link", "|", "table", "preview"],
+    styleSelectedText: false,
+    forceSync: true
+});
+
+function createIssue() {
+    var missingInputOrganization = false;
+    var missingInputIssue = false;
+    var missingInputSolution = false;
+
+    if ($('#title').val().trim() === '') {
+        $("#title").addClass("invalid");
+        $("#title").prop("aria-invalid", "true");
+    }
+
+    if ($('#detail').val().trim() === '') {
+        $("#detail").addClass("invalid");
+        $("#detail").prop("aria-invalid", "true");
+        missingInputIssue = true;
+    }
+
+    if (simplemde.value().trim() === '') {
+        console.log("error");
+        missingInputSolution = true;
+    }
+
+    if (missingInputSolution || missingInputIssue || missingInputOrganization) return;
+
+    var user;
+    var fetchSelf = {
+        url: '/api/v2/users/me.json',
+        type: 'GET',
+        dataType: 'json'
+    };
+
+    client.request(fetchSelf).then(function(data) {
+        user = data.user.name;
+        console.log(data.user.name);
+        var settings = {
+
+            url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement',
+            type: 'POST',
+            data: {
+                title: $('#title').val().trim().replace(/\n/g, '<br>'),
+                detail: $('#detail').val().trim().replace(/\n/g, '<br>'),
+                // solution: simplemde.options.previewRender(simplemde.value()),
+                solution: simplemde.value(),
+                status: 1,
+                created_by: data.user.name,
+                modified_by: data.user.name
+
+            }
+        };
+
+        client.request(settings).then(function(data) {
+            client.trigger('announcementCreated');
+            client.invoke('destroy');
+
+        }, function(error) {
+            console.log("error");
+        });
+    });
+}
+</script>
+
+</html>

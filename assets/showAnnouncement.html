@@ -1,0 +1,215 @@
+<html>
+
+<head>
+    <link href="main.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.css">
+    <script src="https://cdn.jsdelivr.net/simplemde/latest/simplemde.min.js"></script>
+    <link rel="stylesheet" href="showAnnouncement.css">
+</head>
+
+<body>
+    <div class="row">
+        <div class="col s6">
+            <label id="label_created_by">Created BY: </label>
+        </div>
+        <div class="col s10">
+            <p id="created_by"> </p>
+        </div>
+        <div class="input-field col s4 offset-s8">
+            <!-- <label>Status</label> -->
+            <select class="browser-default" id="status">
+                <option value="" disabled selected>Choose your option</option>
+                <option value="1">Pending</option>
+                <option value="2">Solved</option>
+            </select>
+        </div>
+    </div>
+    <div class="row">
+        <form id="formCreateAnnouncement" class="col s12">
+            <div class="row">
+                <div class="input-field col s6">
+                    <input id="title" name="title" type="text" class="validate">
+                    <label id="titleLabel" for="title" data-error="This field is required">Title</label>
+                </div>
+                <div class="input-field col s6">
+                    <input id="detail" name="detail" type="text" class="validate">
+                    <label id="detailLabel" for="detail" data-error="This field is required">Detail</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <h2>Solution</h2>
+                    <textarea id="solutionDisplay" style="display: none"></textarea>
+                    <div id="divSolution"></div>
+                </div>
+                <div class="col s4 offset-s9">
+                    <button id="updateAnnouncement" class="btn waves-effect waves-light" type="button" name="action" onclick="update()" style="display:none">Update
+                        <i class="material-icons right">send</i>
+                    </button>
+                </div>
+            </div>
+        </form>
+        <!--         <button id="createIssue" class="btn waves-effect waves-light" type="button" name="action" onclick="">Update
+            <i class="material-icons right">send</i>
+        </button> -->
+    </div>
+    <!--     <div class="row">
+        <div class="col s8">
+            <button id="updateAnnouncement" class="btn waves-effect waves-light" type="button" name="action" onclick="update()" style="display:none">Update
+                <i class="material-icons right">send</i>
+            </button>
+        </div>
+    </div> -->
+</body>
+<script type="text/javascript">
+var client = ZAFClient.init();
+var email;
+$('#status').material_select();
+getData();
+
+
+// $('.end-markdown').append($('#myEditor').data('markdown').parseContent())
+
+function getData() {
+
+    var settings = {
+        url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement/' + localStorage.getItem('id'),
+        type: 'GET',
+        dataType: 'json'
+    };
+
+    client.request(settings).then(function(data) {
+        $('#status').val(data.display);
+        $('#status').material_select();
+
+        checkAccess(data);
+
+    }, function(error) {
+        console.log("error");
+        console.log(error);
+
+    });
+
+}
+
+function checkAccess(data) {
+    $('#titleLabel').addClass('active');
+    $('#detailLabel').addClass('active');
+
+    var fetchSelf = {
+        url: '/api/v2/users/me.json',
+        type: 'GET',
+        dataType: 'json'
+    };
+    var email = data.created_by;
+    var announcement = data;
+
+    client.request(fetchSelf).then(function(data) {
+        if (data.user.name === email) {
+
+            $('#title').val(announcement.title);
+            $('#title').addClass('valid');
+            $('#detail').addClass('valid');
+            $('#detail').val(announcement.detail);
+            $('#status').prop("disabled", false);
+            $('#status').material_select();
+
+            /* Enable markdown when user is the one who created the announcement */
+            simplemde = new SimpleMDE({
+                element: document.getElementById("solutionDisplay"),
+                toolbar: ["bold", "italic", "|", "heading-1", "heading-2", "heading-3", "|", "ordered-list", "|", "link", "|", "table", "preview", "|", "image"],
+                styleSelectedText: false,
+                forceSync: true
+            });
+            simplemde.value(announcement.solution);
+
+            $('#updateAnnouncement').css('display', 'block');
+
+        } else {
+            var simplemde = new SimpleMDE();
+            console.log(simplemde.options.previewRender(announcement.solution));
+            var renderSolution = simplemde.options.previewRender(announcement.solution);
+            $("#label_created_by").css("display", "block");
+            $("#created_by").css("display", "block");
+            $("#created_by").append(email);
+            $('#titleLabel').css("color", "#FF5A04");
+            $('#detailLabel').css("color", "#FF5A04");
+            $("#title").css("border-bottom", "1px solid #dadada");
+            $("#detail").css("border-bottom", "1px solid #dadada");
+
+            /* Regex solution for opening links in new tab*/
+            var regex = /(href=[a-zA-z0-9\/"":\.?\-_&=;]*)(>)/g;
+            var matchedResults = renderSolution.match(regex);
+            var arrRegex; // = regex.exec(renderSolution);
+            if (matchedResults !== null) {
+                var counter = 0;
+                while (counter !== matchedResults.length) {
+                    arrRegex = regex.exec(renderSolution);
+                    renderSolution = renderSolution.replace(arrRegex[1], arrRegex[1] + ' target = "blank_" ');
+                    counter++;
+                }
+            }
+            // matchedResults.forEach(function(value) {
+            //     arrRegex = regex.exec(renderSolution);
+            //     renderSolution = renderSolution.replace(arrRegex[1], arrRegex[1] + ' target = "blank_" ');
+            // });
+
+
+
+            // $('#divSolution').append(simplemde.options.previewRender(announcement.solution));
+            $('#divSolution').append(renderSolution);
+            simplemde.toTextArea();
+            $("#solutionDisplay").css("display", "none");
+            simplemde = null;
+
+            $('#title').val(announcement.title);
+            $('#detail').val(announcement.detail);
+            $('#titleLabel').addClass('active');
+            $('#detailLabel').addClass('active');
+            $("#title").attr("disabled", true);
+            $("#detail").attr("disabled", true);
+            $('#status').prop("disabled", true);
+            $('#title').css("color", "black");
+            $('#detail').css("color", "black");
+            $('#status').material_select();
+        }
+    });
+}
+
+function update() {
+    var simplemde = new SimpleMDE();
+
+    var settings = {
+        url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement/' + localStorage.getItem('id'),
+        type: 'PUT',
+        data: {
+            status: Number($('#status').val().trim()),
+            title: $('#title').val(),
+            detail: $('#detail').val(),
+            solution: simplemde.value(),
+        }
+    };
+
+    simplemde.toTextArea();
+    $("#solutionDisplay").css("display", "none");
+    simplemde = null;
+
+    client.request(settings).then(function(data) {
+        client.trigger('announcementUpdated', 'Announcement updated! \n' + data, 3000, 'rounded');
+        client.invoke('destroy');
+
+    }, function(error) {
+        console.log("error");
+        console.log(error);
+    });
+}
+</script>
+
+</html>
