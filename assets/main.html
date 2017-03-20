@@ -9,27 +9,29 @@
     <!-- Compiled and minified JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/js/materialize.min.js"></script>
     <link href="main.css" rel="stylesheet">
-    <script src="https://apis.google.com/js/api.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <!-- https://github.com/zendesk/zendesk_app_framework_sdk -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
+    <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
+    <!-- <script javascript="text/javascript" src="main.js"></script> -->
 </head>
 
 <body>
     <div class="fixed-action-btn" style="bottom: 76px; right: 9px;">
-        <a class="btn-floating btn-small red" onclick="createIssue()">
+        <a class="btn-floating btn-small red" onclick="getModalCreateAnnouncement()">
             <i class="material-icons">mode_edit</i>
         </a>
     </div>
     <!-- <button onclick="createIssue()">Create Issue</button> -->
     <div id="content"></div>
-    <footer>
+    <!--     <footer>
         <a href="https://developer.zendesk.com/rest_api/docs/core/apps#overview" target="_blank">Report bugs</a>
-    </footer>
-    <script id="requester-template" type="text/x-handlebars-template">
-        <table class="">
+    </footer> -->
+    <script id="announcements-template" type="text/x-handlebars-template">
+        <table class="bordered">
             <thead>
                 <tr>
-                    <th data-field="id">University</th>
-                    <th data-field="name">Issue</th>
+                    <th data-field="id">Title</th>
+                    <th data-field="name">Detail</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,63 +46,9 @@
     <script id="error-template" type="text/x-handlebars-template">
         <p>{{status}} - {{statusText}} error. Please report a bug at the link below.</p>
     </script>
+    <script type="text/javascript" src="main.js"></script>
 </body>
-<!-- https://github.com/zendesk/zendesk_app_framework_sdk -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.5/handlebars.min.js"></script>
-<script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
-<script javascript="text/javascript" src="main.js"></script>
 <script>
-function createIssue() {
-
-    client.invoke('instances.create', {
-        location: 'modal',
-        url: "assets/createIssue.html"
-    }).then(function(modalContext) {
-        var modalClient = client.instance(modalContext['instances.create'][0].instanceGuid);
-
-
-        modalClient.invoke('resize', {
-            width: '750px',
-            height: '400px'
-        });
-
-        modalClient.on('modal.close', function() {
-            modalClient.trigger('incoming_call');
-            // The modal has been closed.
-            // Materialize.toast('Issue created!', 3000, 'rounded');
-            console.log("Modal is closed");
-        });
-
-    });
-
-}
-
-function getModal(id) {
-
-    localStorage.setItem('id', id);
-    client.invoke('instances.create', {
-        location: 'modal',
-        url: "assets/showIssue.html",
-        client_data: 'test'
-    }).then(function(modalContext) {
-        var modalClient = client.instance(modalContext['instances.create'][0].instanceGuid);
-
-        modalClient.invoke('resize', {
-            width: '750px',
-            height: '400px'
-        });
-
-        modalClient.trigger('incoming_call');
-        console.log("Modal client from main");
-        console.log(modalClient);
-        modalClient.on('modal.close', function() {
-            modalClient.trigger('incoming_call');
-            // The modal has been closed.
-            console.log("Modal is closed");
-        });
-
-    });
-}
 </script>
 
 </html>

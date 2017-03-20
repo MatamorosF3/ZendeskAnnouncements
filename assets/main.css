@@ -1,41 +1,30 @@
-/*footer {
-  font-size: 10px;
-  padding-top: 20px;
-}
-
-.data{
-  color: #363;
-  padding-left: 6px;
-}
-
-#content td {
-  font-size:12px;
-  padding-top:2px;
-
-}*/
-
-
-/*table {
-    font-family: arial, sans-serif;
-    border-collapse: collapse;
-    width: 100%;
-}
-
-td, th {
-    border: 1px solid #dddddd;
-    text-align: left;
-    padding: 8px;
-}
-
-tr:nth-child(even) {
-    background-color: #dddddd;
-}*/
-
 #createIssue {
-    left: 79%;
+    left: 83%;
 }
 
 .fixed-action-btn {
     bottom: 76px;
     right: 9px;
+}
+
+td {
+    font-size: 15px;
+}
+
+td,
+th {
+    padding: 6px 15px;
+}
+
+.validate {
+    /*color: #FF5A04;*/
+}
+
+.dropdown-content select-dropdown {
+    color: #FF5A04;
+}
+
+.btn waves-effect waves-light {
+    color: #FF5A04;
+    background-color: #FF5A04;
 }
