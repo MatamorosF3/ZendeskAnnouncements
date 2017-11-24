@@ -2,7 +2,6 @@
 
 <head>
     <script src="https://cdn.jsdelivr.net/jquery/3.0.0/jquery.min.js"></script>
-
     <script type="text/javascript" src="https://assets.zendesk.com/apps/sdk/2.0/zaf_sdk.js"></script>
     <!-- Compiled and minified CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.98.0/css/materialize.min.css">
@@ -38,6 +37,36 @@
                     <div id="showErrorSolution" style="color:red; display:none;">This Field is required</div>-->
                 </div>
             </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="program_service" type="text" name="program_service">
+                    <label for="program_service" data-error="This field is required">Program/Service</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="macro" type="text" name="macro">
+                    <label for="macro" data-error="This field is required">Macro</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="level" type="text" name="level">
+                    <label for="level" data-error="This field is required">Level</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="classification" type="text" name="classification">
+                    <label for="classification" data-error="This field is required">Classification</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="contact" type="text" name="contact">
+                    <label for="contact" data-error="This field is required">Contact</label>
+                </div>
+            </div>
         </form>
         <button id="createIssue" class="btn waves-effect waves-light" type="button" name="action" onclick="createIssue()">Submit
             <i class="material-icons right">send</i>
@@ -56,10 +85,26 @@ var simplemde = new SimpleMDE({
     forceSync: true
 });
 
+
+function formatAMPM() {
+    var d = new Date(),
+        minutes = d.getMinutes().toString().length == 1 ? '0' + d.getMinutes() : d.getMinutes(),
+        hours = d.getHours().toString().length == 1 ? '0' + d.getHours() : d.getHours(),
+        ampm = d.getHours() >= 12 ? 'pm' : 'am',
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[d.getDay()] + ' ' + months[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getFullYear() + ' ' + hours + ':' + minutes + ampm;
+}
+
 function createIssue() {
     var missingInputOrganization = false;
     var missingInputIssue = false;
     var missingInputSolution = false;
+    var missingInputProgramService = false;
+    var missingInputMacro = false;
+    var missingInputLevel = false;
+    var missingInputClassification = false;
+    var missingInputContact = false;
 
     if ($('#title').val().trim() === '') {
         $("#title").addClass("invalid");
@@ -72,12 +117,48 @@ function createIssue() {
         missingInputIssue = true;
     }
 
+    if ($('#detail').val().trim() === '') {
+        $("#detail").addClass("invalid");
+        $("#detail").prop("aria-invalid", "true");
+        missingInputIssue = true;
+    }
+
+    if ($('#program_service').val().trim() === '') {
+        $("#program_service").addClass("invalid");
+        $("#program_service").prop("aria-invalid", "true");
+        missingInputProgramService = true;
+    }
+
+    if ($('#macro').val().trim() === '') {
+        $("#macro").addClass("invalid");
+        $("#macro").prop("aria-invalid", "true");
+        missingInputMacro = true;
+    }
+
+    if ($('#level').val().trim() === '') {
+        $("#level").addClass("invalid");
+        $("#level").prop("aria-invalid", "true");
+        missingInputLevel = true;
+    }
+
+    if ($('#classification').val().trim() === '') {
+        $("#classification").addClass("invalid");
+        $("#classification").prop("aria-invalid", "true");
+        missingInputClassification = true;
+    }
+
+    if ($('#contact').val().trim() === '') {
+        $("#contact").addClass("invalid");
+        $("#contact").prop("aria-invalid", "true");
+        missingInputContact = true;
+    }
+
     if (simplemde.value().trim() === '') {
         console.log("error");
         missingInputSolution = true;
     }
 
-    if (missingInputSolution || missingInputIssue || missingInputOrganization) return;
+    if (missingInputSolution || missingInputIssue || missingInputOrganization || missingInputProgramService || missingInputMacro || missingInputLevel || missingInputClassification || missingInputContact) return;
 
     var user;
     var fetchSelf = {
@@ -85,13 +166,14 @@ function createIssue() {
         type: 'GET',
         dataType: 'json'
     };
-
+    var date = formatAMPM();
+    console.log('date', date);
     client.request(fetchSelf).then(function(data) {
         user = data.user.name;
         console.log(data.user.name);
         var settings = {
 
-            url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement',
+            url: 'http://199.244.82.187:3000/announcement',
             type: 'POST',
             data: {
                 title: $('#title').val().trim().replace(/\n/g, '<br>'),
@@ -100,12 +182,19 @@ function createIssue() {
                 solution: simplemde.value(),
                 status: 1,
                 created_by: data.user.name,
-                modified_by: data.user.name
+                modified_by: data.user.name,
+                date_created: date,
+                date_modified: date,
+                program_service: $('#program_service').val().trim(),
+                macro: $('#macro').val().trim(),
+                level: $('#level').val().trim(),
+                contact: $('#contact').val().trim()
 
             }
         };
 
         client.request(settings).then(function(data) {
+            console.log("Data", data);
             client.trigger('announcementCreated');
             client.invoke('destroy');
 

@@ -1,16 +1,47 @@
     var client = ZAFClient.init();
+
+    client.invoke('ticketFields:custom_field_77501888.hide').then(function() {
+        return client.invoke('ticketFields:custom_field_77501908.hide').then(function() {
+
+            return client.invoke('ticketFields:custom_field_77501928.hide').then(function() {
+                return;
+            })
+        })
+    });
+
+    client.on('ticket.save', function(data) {
+
+        return client.get('ticket.status').then(function(data) {
+            if (data['ticket.status'] === 'solved') {
+                return client.set('ticket.customField:custom_field_77501908', generateId(20)).then(function(data) {
+                    //console.log(data);
+                    return;
+                });
+            }
+        });
+    });
+
     requestAnnouncementsInfo();
 
     function showInfo(data) {
 
         var context = {};
         var rows = [];
+        var array = [];
 
         Object.keys(data).forEach(function(key) {
             if (data[key].display === 1 || data[key].display === '1') {
-                rows.push({ title: data[key].title.replace('<br>', '\n'), detail: data[key].detail.replace('<br>', '\n'), id: key.toString() });
+                array.push({ title: data[key].title.replace('<br>', '\n'), detail: data[key].detail.replace('<br>', '\n'), id: key.toString() });
             }
         });
+
+        rows.push(array[0]);
+
+
+        /* Order data */
+        for (var i = array.length - 1; i >= 1; i--) {
+            rows.push(array[i]);
+        }
 
         context.items = rows;
         Handlebars.registerHelper('data_rows', function() {
@@ -21,7 +52,7 @@
             );
         });
 
-        
+
 
         var source = $("#announcements-template").html();
         var template = Handlebars.compile(source);
@@ -43,13 +74,13 @@
     function requestAnnouncementsInfo() {
 
         var settings = {
-            url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement',
+            url: 'http://199.244.82.187:3000/announcement',
             type: 'GET',
             dataType: 'json'
         };
 
         client.request(settings).then(function(data) {
-                showInfo(data)
+                showInfo(data);
             },
             function(response) {
                 showError();
@@ -105,4 +136,15 @@
 
         });
 
+    }
+
+    function dec2hex(dec) {
+        return ('0' + dec.toString(16)).substr(-2)
+    }
+
+    // generateId :: Integer -> String
+    function generateId(len) {
+        var arr = new Uint8Array((len || 40) / 2)
+        window.crypto.getRandomValues(arr)
+        return Array.from(arr).map(dec2hex).join('')
     }

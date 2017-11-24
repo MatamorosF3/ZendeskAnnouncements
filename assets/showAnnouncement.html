@@ -22,6 +22,12 @@
         <div class="col s10">
             <p id="created_by"> </p>
         </div>
+        <div class="col s10">
+            <label id="label_date_modified">Updated:</label>
+        </div>
+        <div class="col s10">
+            <p id="date_modified"></p>
+        </div>
         <div class="input-field col s4 offset-s8">
             <!-- <label>Status</label> -->
             <select class="browser-default" id="status">
@@ -55,6 +61,36 @@
                     </button>
                 </div>
             </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="program_service" type="text" name="program_service">
+                    <label id="program_serviceLabel" for="program_service" data-error="This field is required">Program/Service</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="macro" type="text" name="macro">
+                    <label id="macroLabel" for="macro" data-error="This field is required">Macro</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="level" type="text" name="level">
+                    <label id="levelLabel" for="level" data-error="This field is required">Level</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="classification" type="text" name="classification">
+                    <label id="classificationLabel" for="classification" data-error="This field is required">Classification</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s4">
+                    <input id="contact" type="text" name="contact">
+                    <label id="contactLabel" for="contact" data-error="This field is required">Contact</label>
+                </div>
+            </div>
         </form>
         <!--         <button id="createIssue" class="btn waves-effect waves-light" type="button" name="action" onclick="">Update
             <i class="material-icons right">send</i>
@@ -78,9 +114,8 @@ getData();
 // $('.end-markdown').append($('#myEditor').data('markdown').parseContent())
 
 function getData() {
-
     var settings = {
-        url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement/' + localStorage.getItem('id'),
+        url: 'http://199.244.82.187:3000/announcement/' + localStorage.getItem('id'),
         type: 'GET',
         dataType: 'json'
     };
@@ -113,11 +148,26 @@ function checkAccess(data) {
 
     client.request(fetchSelf).then(function(data) {
         if (data.user.name === email) {
+            console.log("User === who created");
+            console.log(data);
 
             $('#title').val(announcement.title);
             $('#title').addClass('valid');
             $('#detail').addClass('valid');
             $('#detail').val(announcement.detail);
+            $('#program_service').val(announcement.program_service);
+            $('#macro').val(announcement.macro);
+            $('#level').val(announcement.level);
+            $('#classification').val(announcement.classification);
+            $('#contact').val(announcement.contact);
+
+            $('#program_service').val(announcement.program_service).addClass('valid');
+            $('#macro').val(announcement.macro).addClass('valid');
+            $('#level').val(announcement.level).addClass('valid');
+            $('#classification').val(announcement.classification).addClass('valid');
+            $('#contact').val(announcement.contact).addClass('valid');
+
+            //$("#date_modified").append(announcement.date_created);
             $('#status').prop("disabled", false);
             $('#status').material_select();
 
@@ -137,15 +187,20 @@ function checkAccess(data) {
             console.log(simplemde.options.previewRender(announcement.solution));
             var renderSolution = simplemde.options.previewRender(announcement.solution);
             $("#label_created_by").css("display", "block");
+            $("#label_date_modified").css("display", "block");
+
             $("#created_by").css("display", "block");
             $("#created_by").append(email);
+
+            $("#date_modified").css("display", "block");
+            $("#date_modified").append(announcement.date_modified);
             $('#titleLabel').css("color", "#FF5A04");
             $('#detailLabel').css("color", "#FF5A04");
             $("#title").css("border-bottom", "1px solid #dadada");
             $("#detail").css("border-bottom", "1px solid #dadada");
 
             /* Regex solution for opening links in new tab*/
-            var regex = /(href=[a-zA-z0-9\/"":\.?\-_&=;]*)(>)/g;
+            var regex = /(href=[a-zA-z0-9\/"":\.?\-_&=;%]*)(>)/g;
             var matchedResults = renderSolution.match(regex);
             var arrRegex; // = regex.exec(renderSolution);
             if (matchedResults !== null) {
@@ -179,6 +234,24 @@ function checkAccess(data) {
             $('#title').css("color", "black");
             $('#detail').css("color", "black");
             $('#status').material_select();
+
+            $('#program_serviceLabel').val(announcement.program_service).addClass('active');
+            $('#macroLabel').val(announcement.macro).addClass('active');
+            $('#levelLabel').val(announcement.level).addClass('active');
+            $('#classificationLabel').val(announcement.classification).addClass('active');
+            $('#contactLabel').val(announcement.contact).addClass('active');
+
+            $('#program_service').val(announcement.program_service).attr("disabled", true);;
+            $('#macro').val(announcement.macro).attr("disabled", true);;
+            $('#level').val(announcement.level).attr("disabled", true);;
+            $('#classification').val(announcement.classification).attr("disabled", true);;
+            $('#contact').val(announcement.contact).attr("disabled", true);;
+
+            $('#program_service').val(announcement.program_service).css("color", "black");
+            $('#macro').val(announcement.macro).css("color", "black");
+            $('#level').val(announcement.level).css("color", "black");
+            $('#classification').val(announcement.classification).css("color", "black");
+            $('#contact').val(announcement.contact).css("color", "black");
         }
     });
 }
@@ -187,13 +260,14 @@ function update() {
     var simplemde = new SimpleMDE();
 
     var settings = {
-        url: 'http://ec2-52-40-155-63.us-west-2.compute.amazonaws.com:3000/announcement/' + localStorage.getItem('id'),
+        url: 'http://199.244.82.187:3000/announcement/' + localStorage.getItem('id'),
         type: 'PUT',
         data: {
             status: Number($('#status').val().trim()),
             title: $('#title').val(),
             detail: $('#detail').val(),
             solution: simplemde.value(),
+            date_modified: formatAMPM()
         }
     };
 
@@ -209,6 +283,16 @@ function update() {
         console.log("error");
         console.log(error);
     });
+}
+
+function formatAMPM() {
+    var d = new Date(),
+        minutes = d.getMinutes().toString().length == 1 ? '0' + d.getMinutes() : d.getMinutes(),
+        hours = d.getHours().toString().length == 1 ? '0' + d.getHours() : d.getHours(),
+        ampm = d.getHours() >= 12 ? 'pm' : 'am',
+        months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return days[d.getDay()] + ' ' + months[d.getMonth()] + ' ' + d.getDate() + ' ' + d.getFullYear() + ' ' + hours + ':' + minutes + ampm;
 }
 </script>
 
